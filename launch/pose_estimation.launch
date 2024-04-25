@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <arg name="reference_mesh" default="$(find foundation_pose)/demo_data/mug.stl"/>
+  <arg name="est_refine_iter" default="5"/>
+  <arg name="track_refine_iter" default="2"/>
+
+  <node name="cluster_to_indices" pkg="nodelet" type="nodelet" args="standalone jsk_pcl_utils/ClusterPointIndicesToPointIndices" output="screen">
+    <remap from="~input" to="/soar/perception/object_detection/approximate_to_boxes/cluster_indices"/>
+  </node>
+  <node pkg="foundation_pose" type="pose_estimation.py" name="pose_estimation" output="screen">
+    <param name="reference_mesh" value="$(arg reference_mesh)"/>
+    <param name="est_refine_iter" value="$(arg est_refine_iter)"/>
+    <param name="track_refine_iter" value="$(arg track_refine_iter)"/>
+    <remap from="color" to="/soar/head_camera/rgb/image_rect"/>
+    <remap from="camera_info" to="/soar/head_camera/rgb/camera_info"/>
+    <remap from="depth" to="/soar/head_camera/depth_registered/image_rect"/>
+    <remap from="indices" to="cluster_to_indices/output"/>
+
+  </node>
+</launch>
