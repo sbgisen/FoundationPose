@@ -16,6 +16,9 @@
 # limitations under the License.
 #
 
+import copy
+import struct
+
 import cv_bridge
 import message_filters
 import numpy as np
@@ -23,10 +26,13 @@ import rospkg
 import rospy
 import tf
 import trimesh
+import trimesh.sample
 from geometry_msgs.msg import PoseStamped
 from pcl_msgs.msg import PointIndices
 from sensor_msgs.msg import CameraInfo
 from sensor_msgs.msg import Image
+from sensor_msgs.msg import PointCloud2
+from sensor_msgs.msg import PointField
 
 from estimater import FoundationPose
 from estimater import PoseRefinePredictor
@@ -45,6 +51,8 @@ class PoseEstimation(object):
         self.__track_refine_iter = rospy.get_param('~track_refine_iter', 2)
 
         mesh = trimesh.load(mesh_file)
+        samples, _ = trimesh.sample.sample_surface(mesh, 10000)
+        self.__mesh_points = trimesh.points.PointCloud(samples)
         self.__to_origin, _ = trimesh.bounds.oriented_bounds(mesh)
         scorer = ScorePredictor()
         refiner = PoseRefinePredictor()
@@ -62,6 +70,7 @@ class PoseEstimation(object):
         self.__pose = None
 
         self.__pub = rospy.Publisher('pose', PoseStamped, queue_size=1)
+        self.__points_pub = rospy.Publisher('points', PointCloud2, queue_size=1)
 
         rgb_sub = message_filters.Subscriber('color', Image)
         depth_sub = message_filters.Subscriber('depth', Image)
@@ -92,7 +101,31 @@ class PoseEstimation(object):
                                               ob_mask=mask,
                                               iteration=self.__est_refine_iter)
         self.__pose = self.__est.track_one(rgb=color, depth=depth, K=k, iteration=self.__track_refine_iter)
-        center_pose = self.__pose @ np.linalg.inv(self.__to_origin)
+        center_pose = self.__pose @ np.linalg.inv(a=self.__to_origin)
+        points = copy.deepcopy(self.__mesh_points)
+        transformed = points.apply_transform(center_pose)
+
+        fields = [
+            PointField('x', 0, PointField.FLOAT32, 1),
+            PointField('y', 4, PointField.FLOAT32, 1),
+            PointField('z', 8, PointField.FLOAT32, 1)
+        ]
+        points_data = []
+        for point in transformed.vertices:
+            points_data.append(struct.pack('fff', point[0], point[1], point[2]))
+
+        points_data = b''.join(points_data)
+
+        pointcloud2 = PointCloud2(header=rgb_msg.header,
+                                  height=1,
+                                  width=len(transformed.vertices),
+                                  fields=fields,
+                                  is_bigendian=False,
+                                  point_step=12,
+                                  row_step=12 * len(transformed.vertices),
+                                  data=points_data,
+                                  is_dense=True)
+        self.__points_pub.publish(pointcloud2)
 
         pose_msg = PoseStamped()
         pose_msg.header = rgb_msg.header
