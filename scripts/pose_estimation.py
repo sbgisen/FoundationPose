@@ -101,9 +101,9 @@ class PoseEstimation(object):
                                               ob_mask=mask,
                                               iteration=self.__est_refine_iter)
         self.__pose = self.__est.track_one(rgb=color, depth=depth, K=k, iteration=self.__track_refine_iter)
-        center_pose = self.__pose @ np.linalg.inv(a=self.__to_origin)
+        center_pose = self.__pose  # @ np.linalg.inv(a=self.__to_origin)
         points = copy.deepcopy(self.__mesh_points)
-        transformed = points.apply_transform(center_pose)
+        transformed = points.apply_transform(self.__pose)
 
         fields = [
             PointField('x', 0, PointField.FLOAT32, 1),
