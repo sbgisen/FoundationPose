@@ -21,5 +21,9 @@ file(GLOB MY_SRC ${PROJECT_SOURCE_DIR}/src/*.cpp)
 
 set(PYBIND11_CPP_STANDARD -std=c++14)
 
-pybind11_add_module(mycpp src/app/pybind_api.cpp ${MY_SRC})
-target_link_libraries(mycpp PRIVATE ${Boost_LIBRARIES} ${OpenMP_CXX_FLAGS} Eigen3::Eigen)
+pybind11_add_module(_mycpp src/app/pybind_api.cpp ${MY_SRC})
+target_link_libraries(_mycpp PRIVATE ${Boost_LIBRARIES} ${OpenMP_CXX_FLAGS} Eigen3::Eigen)
+include(GNUInstallDirs)
+install(TARGETS _mycpp
+  DESTINATION mycpp
+)

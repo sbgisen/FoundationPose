@@ -1,0 +1,17 @@
+[build-system]
+requires = [
+  "scikit-build-core>=0.10",
+  "pybind11>=3.0.1",
+]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "mycpp"
+version = "0.1.0"
+description = "pybind11 module built with CMake"
+requires-python = ">=3.11"
+readme = "README.md"
+
+[tool.scikit-build]
+cmake.source-dir = "."
+cmake.build-type = "Release"
