@@ -15,10 +15,10 @@ sys.path.append(f'{code_dir}/../../')
 import numpy as np
 import torch
 from omegaconf import OmegaConf
-from learning.models.refine_network import RefineNet
-from learning.datasets.h5_dataset import *
-from Utils import *
-from datareader import *
+from foundationpose.learning.models.refine_network import RefineNet
+from foundationpose.learning.datasets.h5_dataset import *
+from foundationpose.Utils import *
+from foundationpose.datareader import *
 
 
 

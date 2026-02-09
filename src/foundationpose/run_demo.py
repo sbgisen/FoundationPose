@@ -7,8 +7,8 @@
 # license agreement from NVIDIA CORPORATION is strictly prohibited.
 
 
-from estimater import *
-from datareader import *
+from foundationpose.estimater import *
+from foundationpose.datareader import *
 import argparse
 
 

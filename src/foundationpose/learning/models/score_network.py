@@ -18,8 +18,8 @@ import torch.nn.functional as F
 import torch
 import torch.nn as nn
 import cv2
-from network_modules import *
-from Utils import *
+from foundationpose.learning.models.network_modules import *
+from foundationpose.Utils import *
 
 
 
