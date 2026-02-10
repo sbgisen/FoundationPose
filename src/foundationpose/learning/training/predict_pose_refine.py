@@ -91,17 +91,22 @@ def make_crop_data_batch(render_size, ob_in_cams, mesh, rgb, depth, K, crop_rati
 
 
 class PoseRefinePredictor:
-  def __init__(self,):
+  def __init__(self, ckpt_file=None, cfg_file=None):
     logging.info("welcome")
     self.amp = True
     self.run_name = "2023-10-28-18-33-37"
     model_name = 'model_best.pth'
     code_dir = os.path.dirname(os.path.realpath(__file__))
-    ckpt_dir = f'{code_dir}/../../weights/{self.run_name}/{model_name}'
 
-    self.cfg = OmegaConf.load(f'{code_dir}/../../weights/{self.run_name}/config.yml')
+    if ckpt_file is None:
+      ckpt_file = f'{code_dir}/../../weights/{self.run_name}/{model_name}'
 
-    self.cfg['ckpt_dir'] = ckpt_dir
+    if cfg_file is None:
+      cfg_file = f'{code_dir}/../../weights/{self.run_name}/config.yml'
+
+    self.cfg = OmegaConf.load(cfg_file)
+
+    self.cfg['ckpt_dir'] = ckpt_file
     self.cfg['enable_amp'] = True
 
     ########## Defaults, to be backward compatible
@@ -134,8 +139,8 @@ class PoseRefinePredictor:
     self.dataset = PoseRefinePairH5Dataset(cfg=self.cfg, h5_file='', mode='test')
     self.model = RefineNet(cfg=self.cfg, c_in=self.cfg['c_in']).cuda()
 
-    logging.info(f"Using pretrained model from {ckpt_dir}")
-    ckpt = torch.load(ckpt_dir)
+    logging.info(f"Using pretrained model from {ckpt_file}")
+    ckpt = torch.load(ckpt_file)
     if 'model' in ckpt:
       ckpt = ckpt['model']
     self.model.load_state_dict(ckpt)

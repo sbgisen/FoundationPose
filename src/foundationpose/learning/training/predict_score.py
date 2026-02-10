@@ -115,17 +115,21 @@ def make_crop_data_batch(render_size, ob_in_cams, mesh, rgb, depth, K, crop_rati
 
 
 class ScorePredictor:
-  def __init__(self, amp=True):
+  def __init__(self, amp=True, ckpt_file=None, cfg_file=None):
     self.amp = amp
     self.run_name = "2024-01-11-20-02-45"
 
     model_name = 'model_best.pth'
     code_dir = os.path.dirname(os.path.realpath(__file__))
-    ckpt_dir = f'{code_dir}/../../weights/{self.run_name}/{model_name}'
+    if ckpt_file is None:
+      ckpt_file = f'{code_dir}/../../weights/{self.run_name}/{model_name}'
 
-    self.cfg = OmegaConf.load(f'{code_dir}/../../weights/{self.run_name}/config.yml')
+    if cfg_file is None:
+      cfg_file = f'{code_dir}/../../weights/{self.run_name}/config.yml'
 
-    self.cfg['ckpt_dir'] = ckpt_dir
+    self.cfg = OmegaConf.load(cfg_file)
+
+    self.cfg['ckpt_dir'] = ckpt_file
     self.cfg['enable_amp'] = True
 
     ########## Defaults, to be backward compatible
@@ -147,8 +151,8 @@ class ScorePredictor:
     self.dataset = ScoreMultiPairH5Dataset(cfg=self.cfg, mode='test', h5_file=None, max_num_key=1)
     self.model = ScoreNetMultiPair(cfg=self.cfg, c_in=self.cfg['c_in']).cuda()
 
-    logging.info(f"Using pretrained model from {ckpt_dir}")
-    ckpt = torch.load(ckpt_dir)
+    logging.info(f"Using pretrained model from {ckpt_file}")
+    ckpt = torch.load(ckpt_file)
     if 'model' in ckpt:
       ckpt = ckpt['model']
     self.model.load_state_dict(ckpt)
