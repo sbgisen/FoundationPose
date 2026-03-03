@@ -44,7 +44,7 @@ url = "https://download.pytorch.org/whl/cu130"
 explicit = true
 
 [tool.uv.extra-build-dependencies]
-nvdiffrast = [{ requirement = "torch", match-runtime = true }]
+nvdiffrast = [{ requirement = "torch", match-runtime = true }, "numpy<2"]
 pytorch3d = ["torch"]
 
 [tool.uv.workspace]
